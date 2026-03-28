@@ -9,15 +9,15 @@
         :root { --gold: #fdd835; --bg: #0b0b0b; --panel: #1a1a1a; --text: #fff; --red: #ff5252; }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        nav { background: var(--panel); padding: 12px 5%; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-between; align-items: center; }
+        nav { background: var(--panel); padding: 12px 5%; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
         .logo span { color: var(--gold); font-weight: 900; }
         .p-badge { background: var(--gold); color: #000; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 800; display: none; }
 
-        .workspace { display: grid; grid-template-columns: 1fr 320px; flex-grow: 1; }
-        #video-grid { background: #000; position: relative; display: flex; align-items: center; justify-content: center; }
+        .workspace { display: grid; grid-template-columns: 1fr 320px; flex-grow: 1; height: calc(100vh - 140px); }
+        #video-grid { background: #000; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 
         /* SIDEBAR & CHAT */
-        .sidebar { background: var(--panel); border-left: 1px solid #333; display: flex; flex-direction: column; }
+        .sidebar { background: var(--panel); border-left: 1px solid #333; display: flex; flex-direction: column; z-index: 1000; }
         .sidebar-tabs { display: flex; border-bottom: 1px solid #333; }
         .tab-btn { flex: 1; padding: 12px; background: none; border: none; color: #888; cursor: pointer; font-size: 0.75rem; font-weight: bold; }
         .tab-btn.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
@@ -25,20 +25,26 @@
         .pane.active { display: block; }
 
         /* CHAT WINDOW */
-        #messages { height: 320px; overflow-y: auto; font-size: 0.85rem; margin-bottom: 10px; border-bottom: 1px solid #333; padding: 5px; }
-        .msg { margin-bottom: 10px; padding: 10px; background: #222; border-radius: 8px; border-left: 3px solid var(--gold); word-wrap: break-word; }
+        #messages { height: 320px; overflow-y: auto; font-size: 0.85rem; margin-bottom: 10px; border-bottom: 1px solid #333; }
+        .msg { margin-bottom: 10px; padding: 10px; background: #222; border-radius: 8px; border-left: 3px solid var(--gold); }
         .msg b { color: var(--gold); display: block; font-size: 0.7rem; }
         .chat-input-area { display: flex; gap: 5px; }
         .chat-input-area input { flex: 1; padding: 10px; background: #000; border: 1px solid #444; color: #fff; border-radius: 5px; outline: none; }
 
         /* LOBBY */
         .lobby-ui { text-align: center; width: 350px; padding: 40px; z-index: 100; background: #1a1a1a; border-radius: 12px; border: 1px solid #333; }
-        #room-input { width: 100%; padding: 15px; margin-bottom: 20px; background: #000; color: var(--gold); border: 2px solid #444; border-radius: 8px; }
+        #room-input { width: 100%; padding: 15px; margin-bottom: 20px; background: #000; color: var(--gold); border: 2px solid #444; border-radius: 8px; font-size: 1rem; }
         .btn-join { background: var(--gold); color: #000; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        /* CONTROLS */
-        .controls { background: var(--panel); padding: 15px; display: flex; justify-content: center; gap: 12px; border-top: 1px solid #333; }
-        .btn { width: 45px; height: 45px; border-radius: 50%; border: none; background: #333; color: white; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; }
+        /* CONTROLS - CRITICAL FIX FOR GITHUB PAGES */
+        .controls { 
+            background: var(--panel); padding: 20px; 
+            display: flex; justify-content: center; gap: 15px; 
+            border-top: 1px solid #333; 
+            position: relative; z-index: 9999; /* Keeps buttons on top of video */
+        }
+        .btn { width: 45px; height: 45px; border-radius: 50%; border: none; background: #333; color: white; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn:hover { background: #444; transform: scale(1.1); }
         .btn-active { background: var(--gold) !important; color: #000 !important; }
         .btn-invite { background: rgba(253, 216, 53, 0.1); border: 1px solid var(--gold); color: var(--gold); width: auto; padding: 0 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; display: none; }
 
@@ -55,8 +61,8 @@
     <div class="workspace">
         <section id="video-grid">
             <div class="lobby-ui" id="lobby">
-                <h2 style="color: var(--gold);">Start Meeting</h2>
-                <input type="text" id="room-input" placeholder="Room Name (e.g. team-chat)">
+                <h2 style="color: var(--gold); margin-top: 0;">Start Meeting</h2>
+                <input type="text" id="room-input" placeholder="Unique Room Name (no spaces)">
                 <button class="btn-join" onclick="joinMeeting()">JOIN WORKSPACE</button>
             </div>
         </section>
@@ -67,13 +73,13 @@
                 <button class="tab-btn" id="chat-tab-btn" onclick="switchTab('chat-pane', this)">CHAT</button>
             </div>
             <div id="p-pane" class="pane active">
-                <div id="p-list">Waiting...</div>
+                <div id="p-list">Waiting for users...</div>
             </div>
             <div id="chat-pane" class="pane">
                 <div id="messages"></div>
                 <div class="chat-input-area">
-                    <input type="text" id="chat-msg" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendChat()">
-                    <button onclick="sendChat()" style="background:var(--gold); border:none; padding:10px; border-radius:4px; cursor:pointer;">➤</button>
+                    <input type="text" id="chat-msg" placeholder="Type here..." onkeypress="if(event.key==='Enter') sendChat()">
+                    <button onclick="sendChat()" style="background:var(--gold); border:none; padding:10px; cursor:pointer; border-radius:4px;">➤</button>
                 </div>
             </div>
         </aside>
@@ -95,7 +101,7 @@
 
         async function joinMeeting() {
             const roomName = document.getElementById('room-input').value.trim();
-            if (!roomName) return alert("Enter a room name!");
+            if (!roomName) return alert("Please enter a room name!");
 
             document.getElementById('lobby').style.display = 'none';
 
@@ -104,25 +110,31 @@
             });
 
             try {
+                // Connect to Daily Demo Room
                 await callFrame.join({ url: `https://demo.daily.co/${roomName}` });
                 
+                // Success - Show UI
                 document.getElementById('p-count-badge').style.display = 'block';
                 document.getElementById('invite-btn').style.display = 'block';
 
                 callFrame.on('participant-joined', updateUI);
                 callFrame.on('participant-left', updateUI);
-                callFrame.on('app-message', handleIncomingMessage);
+                callFrame.on('app-message', handleIncoming);
                 
                 updateUI();
-            } catch (e) { alert("Error connecting."); location.reload(); }
+            } catch (e) { 
+                alert("Connection failed. Use a very unique room name!"); 
+                location.reload(); 
+            }
         }
+
+        // --- HAND RAISE & CHAT FUNCTIONS ---
 
         function sendChat() {
             const input = document.getElementById('chat-msg');
-            const text = input.value.trim();
-            if (!text || !callFrame) return;
-            callFrame.sendAppMessage({ type: 'chat', text: text }, '*');
-            addMsgUI('You', text);
+            if (!input.value.trim() || !callFrame) return;
+            callFrame.sendAppMessage({ type: 'chat', text: input.value }, '*');
+            addMsgUI('You', input.value);
             input.value = '';
         }
 
@@ -134,9 +146,8 @@
             addMsgUI('System', isHandRaised ? "You raised your hand." : "You lowered your hand.");
         }
 
-        function handleIncomingMessage(e) {
-            const p = callFrame.participants();
-            const sender = p[e.fromId]?.user_name || 'Guest';
+        function handleIncoming(e) {
+            const sender = callFrame.participants()[e.fromId]?.user_name || 'Guest';
             if (e.data.type === 'chat') {
                 addMsgUI(sender, e.data.text);
                 if(!document.getElementById('chat-pane').classList.contains('active')) {
@@ -156,9 +167,9 @@
 
         function updateUI() {
             const p = callFrame.participants();
-            const pList = Object.values(p);
-            document.getElementById('p-count-badge').innerText = `${pList.length} ONLINE`;
-            document.getElementById('p-list').innerHTML = pList.map(u => `<div>● ${u.user_name || 'Guest'} ${u.local ? '(You)' : ''}</div>`).join('');
+            document.getElementById('p-count-badge').innerText = `${Object.keys(p).length} ONLINE`;
+            document.getElementById('p-list').innerHTML = Object.values(p)
+                .map(u => `<div>● ${u.user_name || 'Guest'} ${u.local ? '(You)' : ''}</div>`).join('');
         }
 
         function switchTab(paneId, btn) {
@@ -170,22 +181,17 @@
         }
 
         function toggleMic() { 
-            const active = callFrame.localAudio();
-            callFrame.setLocalAudio(!active);
-            document.getElementById('mic-btn').classList.toggle('btn-active', !active);
+            const a = callFrame.localAudio(); callFrame.setLocalAudio(!a);
+            document.getElementById('mic-btn').classList.toggle('btn-active', !a);
         }
-
         function toggleCam() { 
-            const active = callFrame.localVideo();
-            callFrame.setLocalVideo(!active);
-            document.getElementById('cam-btn').classList.toggle('btn-active', !active);
+            const v = callFrame.localVideo(); callFrame.setLocalVideo(!v);
+            document.getElementById('cam-btn').classList.toggle('btn-active', !v);
         }
-
         function shareScreen() { callFrame.startScreenShare(); }
         function copyInvite() {
-            const url = `https://demo.daily.co/${document.getElementById('room-input').value}`;
-            navigator.clipboard.writeText(url);
-            alert("Invite link copied! Send this to your friends.");
+            navigator.clipboard.writeText(`https://demo.daily.co/${document.getElementById('room-input').value}`);
+            alert("Invite copied!");
         }
 
         async function startRecording() {
@@ -199,12 +205,11 @@
                     const blob = new Blob(chunks, { type: 'video/webm' });
                     const a = document.createElement('a');
                     a.href = URL.createObjectURL(blob);
-                    a.download = 'meeting.webm';
-                    a.click();
+                    a.download = 'meeting.webm'; a.click();
                     document.getElementById('rec-btn').classList.remove('btn-active');
                 };
                 recorder.start();
-            } catch (e) { console.error(e); }
+            } catch (e) { }
         }
     </script>
 </body>
