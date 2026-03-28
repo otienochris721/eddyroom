@@ -11,65 +11,46 @@
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
             background: var(--bg); color: var(--text); 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             overflow: hidden;
         }
 
         /* Navigation */
         nav { 
             background: var(--panel); 
-            padding: 15px 5%; 
+            padding: 0 5%; 
             border-bottom: 2px solid var(--gold); 
             display: flex; 
             justify-content: space-between; 
             align-items: center;
             height: 60px;
             box-sizing: border-box;
+            z-index: 1000;
         }
-        .logo { font-weight: 900; font-size: 1.2rem; letter-spacing: 1px; }
+        .logo { font-weight: 900; font-size: 1.3rem; letter-spacing: 1px; }
         .logo span { color: var(--gold); }
-        .status { color: var(--gold); font-size: 0.8rem; font-weight: bold; }
+        .status-dot { width: 10px; height: 10px; background: #4CAF50; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 8px #4CAF50; }
+        .status-text { color: var(--gold); font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
 
-        /* Meeting Container */
-        #meet-frame { 
-            width: 100%; 
-            height: calc(100vh - 60px); 
-            background: #000;
-            position: relative;
-        }
+        /* Container */
+        #meet-frame { width: 100%; height: calc(100vh - 60px); background: #000; position: relative; }
 
-        /* Lobby UI (The Start Screen) */
+        /* Start Screen */
         .lobby {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            background: var(--panel);
-            padding: 40px;
-            border-radius: 15px;
-            border: 1px solid #333;
-            width: 320px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 10;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; background: var(--panel); padding: 45px; border-radius: 20px;
+            border: 1px solid #333; width: 340px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); z-index: 10;
         }
-        .lobby h2 { margin-top: 0; color: var(--gold); }
-        .lobby p { color: #888; font-size: 0.9rem; margin-bottom: 25px; }
+        .lobby h2 { margin: 0 0 10px 0; color: var(--gold); font-size: 1.8rem; }
+        .lobby p { color: #888; font-size: 0.9rem; margin-bottom: 30px; line-height: 1.5; }
         
         .btn-start {
-            background: var(--gold);
-            color: #000;
-            border: none;
-            padding: 15px 30px;
-            font-weight: 800;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            transition: 0.3s;
-            text-transform: uppercase;
+            background: var(--gold); color: #000; border: none; padding: 18px; 
+            font-weight: 800; border-radius: 10px; cursor: pointer; width: 100%; 
+            font-size: 1.1rem; transition: 0.3s; text-transform: uppercase;
         }
-        .btn-start:hover { background: #ffea00; transform: scale(1.02); }
+        .btn-start:hover { background: #ffea00; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(253, 216, 53, 0.3); }
 
-        /* Fullscreen Iframe Fix */
         iframe { border: none !important; }
     </style>
 </head>
@@ -77,57 +58,70 @@
 
     <nav>
         <div class="logo">EDDY<span>ROOM</span></div>
-        <div class="status">● SECURE SERVER</div>
+        <div class="status-box">
+            <span class="status-dot"></span>
+            <span class="status-text">Server Active</span>
+        </div>
     </nav>
 
     <div id="meet-frame">
         <div class="lobby" id="lobby">
             <h2>Workspace</h2>
-            <p>Enter the private meeting room.<br>No payment or login required.</p>
-            <button class="btn-start" onclick="initMeeting()">Join Meeting</button>
+            <p>Private video conferencing with <br> <b>Instant Chat & Notifications</b></p>
+            <button class="btn-start" onclick="initMeeting()">Enter Meeting</button>
         </div>
     </div>
 
+    <audio id="ping-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
+
     <script>
+        let api = null;
+
         function initMeeting() {
-            // 1. Hide the start button/lobby
+            // Hide Lobby
             document.getElementById('lobby').style.display = 'none';
 
-            // 2. Setup Jitsi Options
             const domain = 'meet.jit.si';
             const options = {
-                roomName: 'EddyRoom-Private-Workspace-721', // This is your unique room ID
+                roomName: 'EddyRoom-Secure-721-Workspace', // Unique room ID
                 width: '100%',
                 height: '100%',
                 parentNode: document.querySelector('#meet-frame'),
-                userInfo: {
-                    displayName: 'Member'
-                },
+                userInfo: { displayName: 'Team Member' },
                 configOverwrite: {
+                    prejoinPageEnabled: false,
                     startWithAudioMuted: true,
-                    prejoinPageEnabled: false, // Jumps straight into the meeting
-                    disableThirdPartyRequests: true
+                    disableChat: false,
+                    hideConferenceTimer: false
                 },
                 interfaceConfigOverwrite: {
-                    // This keeps the interface clean
+                    // Chat is prioritized in the toolbar
                     TOOLBAR_BUTTONS: [
-                        'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
-                        'fodeviceselection', 'hangup', 'profile', 'chat', 'recording',
-                        'livestreaming', 'etherpad', 'sharedvideo', 'settings', 'raisehand',
-                        'videoquality', 'filmstrip', 'invite', 'feedback', 'stats', 'shortcuts',
-                        'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone',
-                        'security'
+                        'chat', 'microphone', 'camera', 'desktop', 'raisehand', 
+                        'fullscreen', 'hangup', 'profile', 'settings', 'tileview', 'invite'
                     ],
                     SHOW_JITSI_WATERMARK: false,
-                    SHOW_WATERMARK_FOR_GUESTS: false,
                     DEFAULT_BACKGROUND: '#0b0b0b'
                 }
             };
 
-            // 3. Start the Video API
-            const api = new JitsiMeetExternalAPI(domain, options);
+            // Start Jitsi
+            api = new JitsiMeetExternalAPI(domain, options);
 
-            // 4. Optional: Handle hangup (return to lobby)
+            // --- FEATURE: AUDIO NOTIFICATION ---
+            api.addEventListener('incomingMessage', (event) => {
+                const sound = document.getElementById('ping-sound');
+                sound.currentTime = 0;
+                sound.play().catch(err => console.log("Sound interaction required."));
+            });
+
+            // --- FEATURE: AUTO-OPEN CHAT ---
+            // Opens the chat window automatically once joined
+            api.addEventListener('videoConferenceJoined', () => {
+                api.executeCommand('toggleChat');
+            });
+
+            // Return to lobby on exit
             api.addEventListener('videoConferenceLeft', () => {
                 location.reload(); 
             });
