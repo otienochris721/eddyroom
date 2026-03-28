@@ -4,227 +4,133 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EddyRoom | Pro Workspace</title>
-    <script src="https://unpkg.com/@daily-co/daily-js"></script>
+    <script src="https://meet.jit.si/external_api.js"></script>
     <style>
-        :root { --gold: #fdd835; --bg: #0b0b0b; --panel: #1a1a1a; --text: #fff; --red: #ff5252; }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        :root { --gold: #fdd835; --bg: #0b0b0b; --panel: #1a1a1a; --text: #fff; }
         
-        /* Navigation */
-        nav { background: var(--panel); padding: 12px 5%; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
-        .logo { font-weight: 900; }
-        .logo span { color: var(--gold); }
-        .p-badge { background: var(--gold); color: #000; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 800; display: none; }
-
-        /* Layout */
-        .workspace { display: grid; grid-template-columns: 1fr 320px; flex-grow: 1; height: calc(100vh - 140px); position: relative; }
-        #video-grid { background: #000; position: relative; display: flex; align-items: center; justify-content: center; }
-
-        /* Sidebar & Chat */
-        .sidebar { background: var(--panel); border-left: 1px solid #333; display: flex; flex-direction: column; z-index: 100; }
-        .sidebar-tabs { display: flex; border-bottom: 1px solid #333; }
-        .tab-btn { flex: 1; padding: 15px; background: none; border: none; color: #888; cursor: pointer; font-size: 0.75rem; font-weight: bold; transition: 0.3s; }
-        .tab-btn.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
-        .pane { flex-grow: 1; overflow-y: auto; padding: 15px; display: none; }
-        .pane.active { display: block; }
-
-        /* Chat Styling */
-        #messages { height: 350px; overflow-y: auto; font-size: 0.85rem; margin-bottom: 10px; border-bottom: 1px solid #333; }
-        .msg { margin-bottom: 10px; padding: 10px; background: #222; border-radius: 8px; border-left: 3px solid var(--gold); animation: slideIn 0.2s ease; }
-        .msg b { color: var(--gold); display: block; font-size: 0.7rem; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
-
-        .chat-input-area { display: flex; gap: 8px; }
-        .chat-input-area input { flex: 1; padding: 10px; background: #000; border: 1px solid #444; color: #fff; border-radius: 5px; outline: none; }
-
-        /* Lobby UI */
-        .lobby-ui { text-align: center; width: 350px; padding: 40px; z-index: 500; background: #1a1a1a; border-radius: 12px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .btn-join { background: var(--gold); color: #000; border: none; padding: 18px; width: 100%; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 1rem; }
-
-        /* Controls - CRITICAL: z-index 9999 ensures clicks work */
-        .controls { 
-            background: var(--panel); padding: 20px; 
-            display: flex; justify-content: center; gap: 15px; 
-            border-top: 1px solid #333; 
-            position: relative; z-index: 9999 !important; 
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: var(--bg); color: var(--text); 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
         }
-        .btn { width: 50px; height: 50px; border-radius: 50%; border: none; background: #333; color: white; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .btn:hover { background: #444; transform: scale(1.1); }
-        .btn-active { background: var(--gold) !important; color: #000 !important; box-shadow: 0 0 10px var(--gold); }
 
-        iframe { width: 100% !important; height: 100% !important; border: none !important; position: absolute; top: 0; left: 0; }
+        /* Navigation */
+        nav { 
+            background: var(--panel); 
+            padding: 15px 5%; 
+            border-bottom: 2px solid var(--gold); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            height: 60px;
+            box-sizing: border-box;
+        }
+        .logo { font-weight: 900; font-size: 1.2rem; letter-spacing: 1px; }
+        .logo span { color: var(--gold); }
+        .status { color: var(--gold); font-size: 0.8rem; font-weight: bold; }
+
+        /* Meeting Container */
+        #meet-frame { 
+            width: 100%; 
+            height: calc(100vh - 60px); 
+            background: #000;
+            position: relative;
+        }
+
+        /* Lobby UI (The Start Screen) */
+        .lobby {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: var(--panel);
+            padding: 40px;
+            border-radius: 15px;
+            border: 1px solid #333;
+            width: 320px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+        .lobby h2 { margin-top: 0; color: var(--gold); }
+        .lobby p { color: #888; font-size: 0.9rem; margin-bottom: 25px; }
+        
+        .btn-start {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-weight: 800;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+        .btn-start:hover { background: #ffea00; transform: scale(1.02); }
+
+        /* Fullscreen Iframe Fix */
+        iframe { border: none !important; }
     </style>
 </head>
 <body>
 
     <nav>
         <div class="logo">EDDY<span>ROOM</span></div>
-        <div id="p-count-badge" class="p-badge">0 ONLINE</div>
+        <div class="status">● SECURE SERVER</div>
     </nav>
 
-    <div class="workspace">
-        <section id="video-grid">
-            <div class="lobby-ui" id="lobby">
-                <h2 style="color: var(--gold); margin-top: 0;">EddyRoom Workspace</h2>
-                <p style="color: #888; font-size: 0.85rem; margin-bottom: 25px;">The meeting room is now PUBLIC.<br>Click below to start the session.</p>
-                <button class="btn-join" onclick="joinMeeting()">JOIN WORKSPACE</button>
-            </div>
-        </section>
-
-        <aside class="sidebar">
-            <div class="sidebar-tabs">
-                <button class="tab-btn active" onclick="switchTab('p-pane', this)">PEOPLE</button>
-                <button class="tab-btn" id="chat-tab-btn" onclick="switchTab('chat-pane', this)">CHAT</button>
-            </div>
-            <div id="p-pane" class="pane active">
-                <div id="p-list">Waiting for connection...</div>
-            </div>
-            <div id="chat-pane" class="pane">
-                <div id="messages"></div>
-                <div class="chat-input-area">
-                    <input type="text" id="chat-msg" placeholder="Message everyone..." onkeypress="if(event.key==='Enter') sendChat()">
-                    <button onclick="sendChat()" style="background:var(--gold); border:none; padding:10px 15px; cursor:pointer; border-radius:4px; font-weight: bold;">➤</button>
-                </div>
-            </div>
-        </aside>
-    </div>
-
-    <div class="controls">
-        <button class="btn" id="mic-btn" onclick="toggleMic()" title="Mic">🎤</button>
-        <button class="btn" id="cam-btn" onclick="toggleCam()" title="Camera">📷</button>
-        <button class="btn" onclick="shareScreen()" title="Share Screen">🖥️</button>
-        <button class="btn" id="hand-btn" onclick="raiseHand()" title="Raise Hand">✋</button>
-        <button class="btn" onclick="copyInvite()" title="Copy Link">🔗</button>
-        <button class="btn" id="rec-btn" onclick="startRecording()" title="Record Session">⏺️</button>
-        <button class="btn" style="background: var(--red);" onclick="location.reload()" title="Leave">📞</button>
+    <div id="meet-frame">
+        <div class="lobby" id="lobby">
+            <h2>Workspace</h2>
+            <p>Enter the private meeting room.<br>No payment or login required.</p>
+            <button class="btn-start" onclick="initMeeting()">Join Meeting</button>
+        </div>
     </div>
 
     <script>
-        let callFrame = null;
-        let isHandRaised = false;
-
-        // FIXED PUBLIC URL
-        const ROOM_URL = "https://eddyroom.daily.co/eddyroom";
-
-        async function joinMeeting() {
+        function initMeeting() {
+            // 1. Hide the start button/lobby
             document.getElementById('lobby').style.display = 'none';
 
-            callFrame = window.DailyIframe.createFrame(document.getElementById('video-grid'), {
-                iframeStyle: { width: '100%', height: '100%', border: 'none' },
-                showLeaveButton: false,
-                showFullscreenButton: true
-            });
-
-            try {
-                // Since room is PUBLIC, this will join directly
-                await callFrame.join({ url: ROOM_URL });
-                
-                document.getElementById('p-count-badge').style.display = 'block';
-
-                callFrame.on('participant-joined', updateUI);
-                callFrame.on('participant-left', updateUI);
-                callFrame.on('app-message', handleIncoming);
-                
-                updateUI();
-                addMsgUI('System', 'Connected to the Workspace!');
-            } catch (e) { 
-                console.error(e);
-                alert("Room check failed! Verify the Public status in Daily.co Dashboard."); 
-                location.reload(); 
-            }
-        }
-
-        // --- HAND RAISE & CHAT ---
-        function sendChat() {
-            const input = document.getElementById('chat-msg');
-            if (!input.value.trim() || !callFrame) return;
-            callFrame.sendAppMessage({ type: 'chat', text: input.value }, '*');
-            addMsgUI('You', input.value);
-            input.value = '';
-        }
-
-        function raiseHand() {
-            if (!callFrame) return;
-            isHandRaised = !isHandRaised;
-            document.getElementById('hand-btn').classList.toggle('btn-active', isHandRaised);
-            
-            // Broadcast to other participants
-            callFrame.sendAppMessage({ type: 'hand', raised: isHandRaised }, '*');
-            
-            // Show locally in chat
-            addMsgUI('System', isHandRaised ? "You raised your hand! ✋" : "You lowered your hand.");
-        }
-
-        function handleIncoming(e) {
-            const p = callFrame.participants();
-            const sender = p[e.fromId]?.user_name || 'Guest';
-
-            if (e.data.type === 'chat') {
-                addMsgUI(sender, e.data.text);
-                // Alert Chat Tab if inactive
-                if(!document.getElementById('chat-pane').classList.contains('active')) {
-                    document.getElementById('chat-tab-btn').style.color = 'var(--gold)';
+            // 2. Setup Jitsi Options
+            const domain = 'meet.jit.si';
+            const options = {
+                roomName: 'EddyRoom-Private-Workspace-721', // This is your unique room ID
+                width: '100%',
+                height: '100%',
+                parentNode: document.querySelector('#meet-frame'),
+                userInfo: {
+                    displayName: 'Member'
+                },
+                configOverwrite: {
+                    startWithAudioMuted: true,
+                    prejoinPageEnabled: false, // Jumps straight into the meeting
+                    disableThirdPartyRequests: true
+                },
+                interfaceConfigOverwrite: {
+                    // This keeps the interface clean
+                    TOOLBAR_BUTTONS: [
+                        'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
+                        'fodeviceselection', 'hangup', 'profile', 'chat', 'recording',
+                        'livestreaming', 'etherpad', 'sharedvideo', 'settings', 'raisehand',
+                        'videoquality', 'filmstrip', 'invite', 'feedback', 'stats', 'shortcuts',
+                        'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone',
+                        'security'
+                    ],
+                    SHOW_JITSI_WATERMARK: false,
+                    SHOW_WATERMARK_FOR_GUESTS: false,
+                    DEFAULT_BACKGROUND: '#0b0b0b'
                 }
-            }
-            if (e.data.type === 'hand') {
-                addMsgUI('System', `${sender} ${e.data.raised ? 'RAISED their hand! ✋' : 'lowered their hand.'}`);
-            }
-        }
+            };
 
-        function addMsgUI(sender, text) {
-            const box = document.getElementById('messages');
-            box.innerHTML += `<div class="msg"><b>${sender}</b>${text}</div>`;
-            box.scrollTop = box.scrollHeight;
-        }
+            // 3. Start the Video API
+            const api = new JitsiMeetExternalAPI(domain, options);
 
-        function updateUI() {
-            const p = callFrame.participants();
-            const list = Object.values(p);
-            document.getElementById('p-count-badge').innerText = `${list.length} ONLINE`;
-            document.getElementById('p-list').innerHTML = list
-                .map(u => `<div>● ${u.user_name || 'Guest'} ${u.local ? '(You)' : ''}</div>`).join('');
-        }
-
-        // --- BUTTONS & TABS ---
-        function switchTab(paneId, btn) {
-            document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(paneId).classList.add('active');
-            btn.classList.add('active');
-            if(paneId === 'chat-pane') btn.style.color = ''; 
-        }
-
-        function toggleMic() { 
-            const state = callFrame.localAudio();
-            callFrame.setLocalAudio(!state);
-            document.getElementById('mic-btn').classList.toggle('btn-active', !state);
-        }
-        function toggleCam() { 
-            const state = callFrame.localVideo();
-            callFrame.setLocalVideo(!state);
-            document.getElementById('cam-btn').classList.toggle('btn-active', !state);
-        }
-        function shareScreen() { if(callFrame) callFrame.startScreenShare(); }
-        function copyInvite() {
-            navigator.clipboard.writeText(ROOM_URL);
-            alert("Invite link copied!");
-        }
-
-        async function startRecording() {
-            try {
-                const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-                const recorder = new MediaRecorder(stream);
-                const chunks = [];
-                document.getElementById('rec-btn').classList.add('btn-active');
-                recorder.ondataavailable = e => chunks.push(e.data);
-                recorder.onstop = () => {
-                    const blob = new Blob(chunks, { type: 'video/webm' });
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(blob);
-                    a.download = 'eddyroom-session.webm'; a.click();
-                    document.getElementById('rec-btn').classList.remove('btn-active');
-                };
-                recorder.start();
-            } catch (e) { }
+            // 4. Optional: Handle hangup (return to lobby)
+            api.addEventListener('videoConferenceLeft', () => {
+                location.reload(); 
+            });
         }
     </script>
 </body>
