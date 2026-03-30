@@ -4,47 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EddyRoom | Pro Workspace</title>
-    <script src="https://meet.ffmuc.net/external_api.js"></script>
+    <script src="https://meet.jit.si/external_api.js"></script>
     <style>
         :root { --gold: #fdd835; --bg: #0b0b0b; --panel: #1a1a1a; --text: #fff; }
-        
-        body, html { 
-            margin: 0; padding: 0; width: 100%; height: 100%; 
-            background: var(--bg); color: var(--text); 
-            font-family: 'Inter', -apple-system, sans-serif; overflow: hidden;
-        }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: var(--text); font-family: sans-serif; overflow: hidden; }
 
-        /* Branding Header */
         nav { 
             background: var(--panel); padding: 0 5%; border-bottom: 2px solid var(--gold); 
-            display: flex; justify-content: space-between; align-items: center;
-            height: 60px; box-sizing: border-box; z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center; height: 60px; box-sizing: border-box; 
         }
-        .logo { font-weight: 900; font-size: 1.3rem; letter-spacing: 1px; }
+        .logo { font-weight: 900; font-size: 1.3rem; }
         .logo span { color: var(--gold); }
-        
-        .share-btn {
-            background: var(--gold); color: #000; border: none; padding: 8px 15px;
-            font-weight: 800; border-radius: 5px; cursor: pointer; font-size: 0.75rem;
-            display: none;
-        }
+        .share-btn { background: var(--gold); color: #000; border: none; padding: 8px 15px; font-weight: 800; border-radius: 5px; cursor: pointer; display: none; }
 
-        /* Video Area */
         #meet-frame { width: 100%; height: calc(100vh - 60px); background: #000; position: relative; }
-
-        /* Entry Lobby */
         .lobby {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            text-align: center; background: var(--panel); padding: 45px; border-radius: 20px;
-            border: 1px solid #333; width: 340px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); z-index: 10;
+            text-align: center; background: var(--panel); padding: 40px; border-radius: 15px;
+            border: 1px solid #333; width: 320px; z-index: 10;
         }
-        .btn-start {
-            background: var(--gold); color: #000; border: none; padding: 18px; 
-            font-weight: 800; border-radius: 10px; cursor: pointer; width: 100%; 
-            font-size: 1.1rem; text-transform: uppercase;
-        }
-
-        #jitsi-container { width: 100%; height: 100%; display: none; }
+        .btn-start { background: var(--gold); color: #000; border: none; padding: 18px; font-weight: 800; border-radius: 8px; cursor: pointer; width: 100%; font-size: 1rem; }
+        
+        #video-container { width: 100%; height: 100%; display: none; }
         iframe { border: none !important; width: 100% !important; height: 100% !important; }
     </style>
 </head>
@@ -52,62 +33,56 @@
 
     <nav>
         <div class="logo">EDDY<span>ROOM</span></div>
-        <div style="display: flex; gap: 15px; align-items: center;">
-            <button id="share-btn" class="share-btn" onclick="copyInvite()">🔗 SHARE LINK</button>
-            <div id="status" style="color: var(--gold); font-size: 0.7rem; font-weight: bold;">● SECURE</div>
-        </div>
+        <button id="share-link" class="share-btn" onclick="copyUrl()">🔗 SHARE LINK</button>
     </nav>
 
     <div id="meet-frame">
         <div class="lobby" id="lobby">
             <h2 style="color:var(--gold)">Workspace</h2>
-            <p style="color:#888; font-size:0.9rem; margin-bottom:25px;">Unlimited Public Video & Chat<br><b>No Moderator Login Required</b></p>
+            <p style="color:#888; font-size:0.9rem; margin-bottom:25px;">Unlimited Video & Chat<br><b>Step 1: Join & Authenticate</b></p>
             <button class="btn-start" onclick="initMeeting()">Enter Meeting</button>
         </div>
-        <div id="jitsi-container"></div>
+        <div id="video-container"></div>
     </div>
 
     <script>
         function initMeeting() {
             document.getElementById('lobby').style.display = 'none';
-            document.getElementById('jitsi-container').style.display = 'block';
-            document.getElementById('share-btn').style.display = 'block';
-            document.getElementById('status').innerHTML = "<span style='color:#4CAF50'>● LIVE</span>";
+            document.getElementById('video-container').style.display = 'block';
+            document.getElementById('share-link').style.display = 'block';
 
-            // Community domain that allows public starts
-            const domain = 'meet.ffmuc.net';
+            // Using the official meet.jit.si - it is the most compatible with GitHub
+            const domain = 'meet.jit.si';
             const options = {
-                roomName: 'EddyRoom_721_Pro_Workspace_Public_Access',
+                // Using a unique ID prevents room name conflicts
+                roomName: 'EddyRoom_Private_721_' + Math.floor(Math.random() * 10000),
                 width: '100%',
                 height: '100%',
-                parentNode: document.querySelector('#jitsi-container'),
+                parentNode: document.querySelector('#video-container'),
                 configOverwrite: {
-                    prejoinPageEnabled: false,
-                    startWithAudioMuted: true,
-                    disableThirdPartyRequests: false
+                    prejoinPageEnabled: true, // MUST be true to avoid "Not Allowed" error
+                    startWithAudioMuted: true
                 },
                 interfaceConfigOverwrite: {
-                    TOOLBAR_BUTTONS: ['chat', 'microphone', 'camera', 'desktop', 'hangup', 'settings', 'tileview'],
+                    TOOLBAR_BUTTONS: ['chat', 'microphone', 'camera', 'desktop', 'hangup', 'settings'],
                     SHOW_JITSI_WATERMARK: false,
                 }
             };
 
             const api = new JitsiMeetExternalAPI(domain, options);
 
-            // Force browser permissions for video/audio
-            api.addEventListener('videoConferenceJoined', () => {
+            // This fixes the black screen by manually forcing permissions
+            api.on('videoConferenceJoined', () => {
                 const iframe = document.querySelector('iframe');
                 if (iframe) {
                     iframe.setAttribute("allow", "camera; microphone; display-capture; autoplay; clipboard-write; speaker-selection");
                 }
-                // Auto-open chat after joining
-                setTimeout(() => { api.executeCommand('toggleChat'); }, 2000);
             });
         }
 
-        function copyInvite() {
+        function copyUrl() {
             navigator.clipboard.writeText(window.location.href);
-            alert("Meeting link copied! You can now send it to others.");
+            alert("Invite link copied!");
         }
     </script>
 </body>
