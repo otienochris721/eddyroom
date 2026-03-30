@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EddyRoom | Pro Workspace</title>
-    <script src="https://meet.jit.si/external_api.js"></script>
+    <script src="https://meet.ffmuc.net/external_api.js"></script>
     <style>
         :root { --gold: #fdd835; --bg: #0b0b0b; --panel: #1a1a1a; --text: #fff; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: var(--text); font-family: sans-serif; overflow: hidden; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; overflow: hidden; }
 
         nav { 
             background: var(--panel); padding: 0 5%; border-bottom: 2px solid var(--gold); 
@@ -39,7 +39,7 @@
     <div id="meet-frame">
         <div class="lobby" id="lobby">
             <h2 style="color:var(--gold)">Workspace</h2>
-            <p style="color:#888; font-size:0.9rem; margin-bottom:25px;">Unlimited Video & Chat<br><b>Fixed Permanent Room</b></p>
+            <p style="color:#888; font-size:0.9rem; margin-bottom:25px;">Public Unlimited Room<br><b>No Login Required</b></p>
             <button class="btn-start" onclick="initMeeting()">Enter Meeting</button>
         </div>
         <div id="video-container"></div>
@@ -51,17 +51,18 @@
             document.getElementById('video-container').style.display = 'block';
             document.getElementById('share-link').style.display = 'block';
 
-            const domain = 'meet.jit.si';
+            // We use meet.ffmuc.net because it allows guests to start rooms
+            const domain = 'meet.ffmuc.net';
             const options = {
-                // Change "EddyRoom_Official_721" to anything you want.
-                // Everyone using this code will now join the SAME room.
-                roomName: 'EddyRoom_Official_Permanent_721',
+                // FIXED ROOM NAME: Make sure everyone uses THIS name to see each other
+                roomName: 'EddyRoom_Global_Workspace_721',
                 width: '100%',
                 height: '100%',
                 parentNode: document.querySelector('#video-container'),
                 configOverwrite: {
-                    prejoinPageEnabled: true, // Needed to bypass the "Not Allowed" security
-                    startWithAudioMuted: true
+                    prejoinPageEnabled: false,
+                    startWithAudioMuted: true,
+                    disableThirdPartyRequests: false
                 },
                 interfaceConfigOverwrite: {
                     TOOLBAR_BUTTONS: ['chat', 'microphone', 'camera', 'desktop', 'hangup', 'settings'],
@@ -71,7 +72,7 @@
 
             const api = new JitsiMeetExternalAPI(domain, options);
 
-            // Force browser permissions for camera/mic
+            // Force browser permissions so the screen isn't black
             api.on('videoConferenceJoined', () => {
                 const iframe = document.querySelector('iframe');
                 if (iframe) {
@@ -81,8 +82,9 @@
         }
 
         function copyUrl() {
+            // This copies YOUR website URL so others can join you
             navigator.clipboard.writeText(window.location.href);
-            alert("Invite link copied!");
+            alert("Meeting link copied! Send your website link to others to join.");
         }
     </script>
 </body>
