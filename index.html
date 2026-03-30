@@ -39,7 +39,7 @@
     <div id="meet-frame">
         <div class="lobby" id="lobby">
             <h2 style="color:var(--gold)">Workspace</h2>
-            <p style="color:#888; font-size:0.9rem; margin-bottom:25px;">Unlimited Video & Chat<br><b>Step 1: Join & Authenticate</b></p>
+            <p style="color:#888; font-size:0.9rem; margin-bottom:25px;">Unlimited Video & Chat<br><b>Fixed Permanent Room</b></p>
             <button class="btn-start" onclick="initMeeting()">Enter Meeting</button>
         </div>
         <div id="video-container"></div>
@@ -51,16 +51,16 @@
             document.getElementById('video-container').style.display = 'block';
             document.getElementById('share-link').style.display = 'block';
 
-            // Using the official meet.jit.si - it is the most compatible with GitHub
             const domain = 'meet.jit.si';
             const options = {
-                // Using a unique ID prevents room name conflicts
-                roomName: 'EddyRoom_Private_721_' + Math.floor(Math.random() * 10000),
+                // Change "EddyRoom_Official_721" to anything you want.
+                // Everyone using this code will now join the SAME room.
+                roomName: 'EddyRoom_Official_Permanent_721',
                 width: '100%',
                 height: '100%',
                 parentNode: document.querySelector('#video-container'),
                 configOverwrite: {
-                    prejoinPageEnabled: true, // MUST be true to avoid "Not Allowed" error
+                    prejoinPageEnabled: true, // Needed to bypass the "Not Allowed" security
                     startWithAudioMuted: true
                 },
                 interfaceConfigOverwrite: {
@@ -71,7 +71,7 @@
 
             const api = new JitsiMeetExternalAPI(domain, options);
 
-            // This fixes the black screen by manually forcing permissions
+            // Force browser permissions for camera/mic
             api.on('videoConferenceJoined', () => {
                 const iframe = document.querySelector('iframe');
                 if (iframe) {
