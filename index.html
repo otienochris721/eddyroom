@@ -14,62 +14,42 @@
             overflow: hidden;
         }
 
-        /* Navigation Bar */
+        /* Nav Bar */
         nav { 
-            background: var(--panel); 
-            padding: 0 5%; 
-            border-bottom: 2px solid var(--gold); 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            height: 60px;
-            box-sizing: border-box;
-            z-index: 1000;
+            background: var(--panel); padding: 0 5%; border-bottom: 2px solid var(--gold); 
+            display: flex; justify-content: space-between; align-items: center;
+            height: 60px; box-sizing: border-box; z-index: 1000;
         }
         .logo { font-weight: 900; font-size: 1.3rem; letter-spacing: 1px; }
         .logo span { color: var(--gold); }
-
-        /* Share Link UI in Nav */
-        .nav-actions { display: flex; align-items: center; gap: 15px; }
-        .share-btn {
+        .btn-share {
             background: var(--gold); color: #000; border: none; padding: 8px 15px;
-            font-weight: 800; border-radius: 5px; cursor: pointer; font-size: 0.75rem;
+            font-weight: 800; border-radius: 5px; cursor: pointer; font-size: 0.7rem;
             display: none; transition: 0.3s;
         }
-        .share-btn:hover { background: #fff; transform: scale(1.05); }
 
-        /* Meeting Container */
+        /* Container */
         #meet-frame { width: 100%; height: calc(100vh - 60px); background: #000; position: relative; }
 
-        /* Lobby UI (Start Screen) */
+        /* Lobby UI */
         .lobby {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             text-align: center; background: var(--panel); padding: 45px; border-radius: 20px;
             border: 1px solid #333; width: 340px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); z-index: 10;
         }
-        .lobby h2 { margin: 0 0 10px 0; color: var(--gold); font-size: 1.8rem; }
-        .lobby p { color: #888; font-size: 0.9rem; margin-bottom: 30px; line-height: 1.5; }
-        
+        .lobby h2 { margin: 0 0 10px 0; color: var(--gold); }
         .btn-start {
             background: var(--gold); color: #000; border: none; padding: 18px; 
             font-weight: 800; border-radius: 10px; cursor: pointer; width: 100%; 
-            font-size: 1.1rem; transition: 0.3s; text-transform: uppercase;
-        }
-        .btn-start:hover { background: #ffea00; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(253, 216, 53, 0.3); }
-
-        /* Video Iframe */
-        #video-room {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: none; /* Hidden until "Enter Meeting" is clicked */
+            font-size: 1.1rem; text-transform: uppercase;
         }
 
-        /* "Link Copied" Message */
+        /* Video Frame */
+        iframe { width: 100%; height: 100%; border: none; display: none; }
+
         #toast {
-            position: fixed; top: 80px; right: 20px; background: var(--gold); color: #000;
-            padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 0.9rem;
-            display: none; z-index: 2000; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            position: fixed; top: 75px; right: 20px; background: var(--gold); color: #000;
+            padding: 10px 20px; border-radius: 5px; font-weight: bold; display: none; z-index: 2000;
         }
     </style>
 </head>
@@ -77,59 +57,47 @@
 
     <nav>
         <div class="logo">EDDY<span>ROOM</span></div>
-        <div class="nav-actions">
-            <button id="share-btn" class="share-btn" onclick="copyInvite()">🔗 SHARE MEETING LINK</button>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <button id="share-btn" class="btn-share" onclick="copyRoom()">🔗 SHARE MEETING</button>
             <div id="status" style="color: var(--gold); font-size: 0.7rem; font-weight: bold;">● STANDBY</div>
         </div>
     </nav>
 
-    <div id="toast">✅ Link Copied! Send it to your friends.</div>
+    <div id="toast">✅ Room Link Copied!</div>
 
     <div id="meet-frame">
         <div class="lobby" id="lobby">
             <h2>Workspace</h2>
-            <p>Direct Encrypted Video Access.<br><b>No Login or Account Required.</b></p>
-            <button class="btn-start" onclick="initMeeting()">Enter Meeting</button>
+            <p style="color:#888; font-size:0.9rem; margin-bottom:25px;">Private Video Room<br><b>Unlimited Time • No Login</b></p>
+            <button class="btn-start" onclick="startMeeting()">Join Meeting</button>
         </div>
         
-        <iframe id="video-room" allow="camera; microphone; display-capture; autoplay; clipboard-write"></iframe>
+        <iframe id="video-iframe" allow="camera; microphone; display-capture; autoplay; clipboard-write"></iframe>
     </div>
 
-    <audio id="ping-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
-
     <script>
-        // THIS IS YOUR UNIQUE ROOM ID
-        const MY_ROOM_ID = "EddyRoom_Workspace_721_Alpha";
+        // Unique Room ID for your session
+        const ROOM_ID = "EddyRoom_Private_721_Workspace";
 
-        function initMeeting() {
+        function startMeeting() {
+            const iframe = document.getElementById('video-iframe');
             const lobby = document.getElementById('lobby');
-            const iframe = document.getElementById('video-room');
             const shareBtn = document.getElementById('share-btn');
             const status = document.getElementById('status');
-            const sound = document.getElementById('ping-sound');
 
-            // 1. Set the video source to MiroTalk P2P
-            iframe.src = `https://p2p.mirotalk.com/join/${MY_ROOM_ID}`;
+            // Switch to MiroTalk P2P (Bypasses Jitsi 5-min demo error)
+            iframe.src = `https://p2p.mirotalk.com/join/${ROOM_ID}`;
             
-            // 2. Hide Lobby and Show Video
             lobby.style.display = 'none';
             iframe.style.display = 'block';
-            
-            // 3. Update Navbar
             shareBtn.style.display = 'block';
             status.innerHTML = "<span style='color:#4CAF50'>● LIVE SESSION</span>";
-
-            // 4. Play notification sound
-            sound.play().catch(e => console.log("Audio ready for next interaction"));
         }
 
-        function copyInvite() {
-            // Copies your website URL so friends can join your specific page
-            const currentUrl = window.location.href;
-            navigator.clipboard.writeText(currentUrl).then(() => {
+        function copyRoom() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
                 const toast = document.getElementById('toast');
                 toast.style.display = 'block';
-                // Hide the message after 3 seconds
                 setTimeout(() => { toast.style.display = 'none'; }, 3000);
             });
         }
