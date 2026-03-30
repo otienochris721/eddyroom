@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EddyRoom | Pro Workspace</title>
-    <script src="https://meet.jit.si/external_api.js"></script>
     <style>
         :root { --gold: #fdd835; --bg: #0b0b0b; --panel: #1a1a1a; --text: #fff; }
         
@@ -50,7 +49,13 @@
         }
         .btn-start:hover { background: #ffea00; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(253, 216, 53, 0.3); }
 
-        iframe { border: none !important; }
+        /* The Video Iframe */
+        #video-room {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -58,74 +63,41 @@
     <nav>
         <div class="logo">EDDY<span>ROOM</span></div>
         <div class="status-box">
-            <span class="status-text">● SECURE WORKSPACE</span>
+            <span class="status-text">● SECURE OPEN WORKSPACE</span>
         </div>
     </nav>
 
     <div id="meet-frame">
         <div class="lobby" id="lobby">
             <h2>Workspace</h2>
-            <p>Private video conferencing with <br> <b>Instant Chat & Notifications</b></p>
+            <p>Direct Encrypted Video Access<br><b>No Login Required</b></p>
             <button class="btn-start" onclick="initMeeting()">Enter Meeting</button>
         </div>
+        
+        <iframe id="video-room" allow="camera; microphone; display-capture; autoplay; clipboard-write"></iframe>
     </div>
 
     <audio id="ping-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
 
     <script>
-        let api = null;
-
         function initMeeting() {
-            // Hide Lobby
-            document.getElementById('lobby').style.display = 'none';
+            const lobby = document.getElementById('lobby');
+            const iframe = document.getElementById('video-room');
+            
+            // Generate a unique, permanent room name for your workspace
+            const roomName = "EddyRoom_Global_Workspace_721";
+            
+            // Set the Source to an Open-Source MiroTalk Server
+            // This bypasses Jitsi's moderator login requirements
+            iframe.src = `https://p2p.mirotalk.com/join/${roomName}`;
+            
+            // UI Changes
+            lobby.style.display = 'none';
+            iframe.style.display = 'block';
 
-            const domain = 'meet.jit.si';
-            const options = {
-                // FIXED UNIQUE NAME: Prevents "Demo" warnings and keeps room consistent
-                roomName: 'EddyRoom_Private_Alpha_Workspace_721', 
-                width: '100%',
-                height: '100%',
-                parentNode: document.querySelector('#meet-frame'),
-                configOverwrite: {
-                    prejoinPageEnabled: false,
-                    startWithAudioMuted: true,
-                    disableChat: false,
-                    hideConferenceTimer: false,
-                    // Security fix to prevent embedding blocks
-                    enableNoAudioDetection: true,
-                    enableNoVideoDetection: true
-                },
-                interfaceConfigOverwrite: {
-                    TOOLBAR_BUTTONS: [
-                        'chat', 'microphone', 'camera', 'desktop', 'raisehand', 
-                        'fullscreen', 'hangup', 'profile', 'settings', 'tileview'
-                    ],
-                    SHOW_JITSI_WATERMARK: false,
-                    DEFAULT_BACKGROUND: '#0b0b0b'
-                }
-            };
-
-            // Start Jitsi
-            api = new JitsiMeetExternalAPI(domain, options);
-
-            // --- FEATURE: AUTO-OPEN CHAT (With 2.5s Delay) ---
-            api.addEventListener('videoConferenceJoined', () => {
-                setTimeout(() => {
-                    api.executeCommand('toggleChat');
-                }, 2500);
-            });
-
-            // --- FEATURE: AUDIO NOTIFICATION ---
-            api.on('incomingMessage', () => {
-                const sound = document.getElementById('ping-sound');
-                sound.currentTime = 0;
-                sound.play().catch(e => console.log("Sound interaction required."));
-            });
-
-            // Return to lobby on exit
-            api.addEventListener('videoConferenceLeft', () => {
-                location.reload(); 
-            });
+            // Play the "Entry Ping"
+            const sound = document.getElementById('ping-sound');
+            sound.play().catch(e => console.log("Audio ready"));
         }
     </script>
 </body>
