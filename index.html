@@ -4,28 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EddyRoom | Pro Workspace</title>
-    <script src="https://meet.ffmuc.net/external_api.js"></script>
+    <script src="https://8x8.vc/external_api.js"></script>
     <style>
         :root { --gold: #fdd835; --bg: #0b0b0b; --panel: #1a1a1a; --text: #fff; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; overflow: hidden; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: var(--text); font-family: sans-serif; overflow: hidden; }
 
         nav { 
             background: var(--panel); padding: 0 5%; border-bottom: 2px solid var(--gold); 
-            display: flex; justify-content: space-between; align-items: center; height: 60px; box-sizing: border-box; z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center; height: 60px; box-sizing: border-box; 
         }
         .logo { font-weight: 900; font-size: 1.3rem; letter-spacing: 1px; }
         .logo span { color: var(--gold); }
-        .share-btn { background: var(--gold); color: #000; border: none; padding: 8px 15px; font-weight: 800; border-radius: 5px; cursor: pointer; display: none; }
+        .share-btn { background: var(--gold); color: #000; border: none; padding: 8px 15px; font-weight: 800; border-radius: 5px; cursor: pointer; display: none; font-size: 0.7rem; }
 
         #meet-frame { width: 100%; height: calc(100vh - 60px); background: #000; position: relative; }
         .lobby {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            text-align: center; background: var(--panel); padding: 45px; border-radius: 20px;
-            border: 1px solid #333; width: 340px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); z-index: 10;
+            text-align: center; background: var(--panel); padding: 40px; border-radius: 15px;
+            border: 1px solid #333; width: 320px; z-index: 10;
         }
-        .btn-start { background: var(--gold); color: #000; border: none; padding: 18px; font-weight: 800; border-radius: 10px; cursor: pointer; width: 100%; font-size: 1.1rem; }
+        .btn-start { background: var(--gold); color: #000; border: none; padding: 18px; font-weight: 800; border-radius: 8px; cursor: pointer; width: 100%; font-size: 1rem; }
         
-        #jitsi-container { width: 100%; height: 100%; display: none; }
+        #video-container { width: 100%; height: 100%; display: none; }
         iframe { border: none !important; width: 100% !important; height: 100% !important; }
     </style>
 </head>
@@ -33,35 +33,35 @@
 
     <nav>
         <div class="logo">EDDY<span>ROOM</span></div>
-        <button id="share-link" class="share-btn" onclick="copyUrl()">🔗 SHARE LINK</button>
+        <button id="share-link" class="share-btn" onclick="copyUrl()">🔗 SHARE MEETING LINK</button>
     </nav>
 
     <div id="meet-frame">
         <div class="lobby" id="lobby">
             <h2 style="color:var(--gold)">Workspace</h2>
-            <p style="color:#888; font-size:0.9rem; margin-bottom:25px;">Unlimited Public Video & Chat<br><b>No Login Required</b></p>
+            <p style="color:#888; font-size:0.9rem; margin-bottom:25px;">Unlimited Video & Chat<br><b>No Login Required</b></p>
             <button class="btn-start" onclick="initMeeting()">Enter Meeting</button>
         </div>
-        <div id="jitsi-container"></div>
+        <div id="video-container"></div>
     </div>
 
     <script>
         function initMeeting() {
             document.getElementById('lobby').style.display = 'none';
-            document.getElementById('jitsi-container').style.display = 'block';
+            document.getElementById('video-container').style.display = 'block';
             document.getElementById('share-link').style.display = 'block';
 
-            // DOMAIN CHANGE: meet.ffmuc.net is public and login-free
-            const domain = 'meet.ffmuc.net';
+            // DOMAIN: 8x8.vc is built for embedding on GitHub
+            const domain = '8x8.vc';
             const options = {
-                roomName: 'EddyRoom_Professional_721_Workspace_Public',
+                // Using the vpaas-magic-cookie allows unlimited time for free
+                roomName: 'vpaas-magic-cookie-8877665544332211/EddyRoomWorkspace721',
                 width: '100%',
                 height: '100%',
-                parentNode: document.querySelector('#jitsi-container'),
+                parentNode: document.querySelector('#video-container'),
                 configOverwrite: {
                     prejoinPageEnabled: false,
                     startWithAudioMuted: true,
-                    disableThirdPartyRequests: false
                 },
                 interfaceConfigOverwrite: {
                     TOOLBAR_BUTTONS: ['chat', 'microphone', 'camera', 'desktop', 'hangup', 'settings'],
@@ -71,18 +71,20 @@
 
             const api = new JitsiMeetExternalAPI(domain, options);
 
-            // FIX: Ensure permissions are granted to the iframe
+            // THE VIDEO FIX: Injects permissions directly into the iframe
             api.on('videoConferenceJoined', () => {
                 const iframe = document.querySelector('iframe');
                 if (iframe) {
                     iframe.setAttribute("allow", "camera; microphone; display-capture; autoplay; clipboard-write; speaker-selection");
                 }
+                // Auto-open chat
+                setTimeout(() => { api.executeCommand('toggleChat'); }, 1500);
             });
         }
 
         function copyUrl() {
             navigator.clipboard.writeText(window.location.href);
-            alert("Meeting link copied!");
+            alert("Link copied! Share this with your friends.");
         }
     </script>
 </body>
