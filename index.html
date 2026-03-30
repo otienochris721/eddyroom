@@ -28,12 +28,20 @@
         }
         .logo { font-weight: 900; font-size: 1.3rem; letter-spacing: 1px; }
         .logo span { color: var(--gold); }
-        .status-text { color: var(--gold); font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
 
-        /* Container */
+        /* Share Link UI in Nav */
+        .nav-actions { display: flex; align-items: center; gap: 15px; }
+        .share-btn {
+            background: var(--gold); color: #000; border: none; padding: 8px 15px;
+            font-weight: 800; border-radius: 5px; cursor: pointer; font-size: 0.75rem;
+            display: none; transition: 0.3s;
+        }
+        .share-btn:hover { background: #fff; transform: scale(1.05); }
+
+        /* Meeting Container */
         #meet-frame { width: 100%; height: calc(100vh - 60px); background: #000; position: relative; }
 
-        /* Start Screen */
+        /* Lobby UI (Start Screen) */
         .lobby {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             text-align: center; background: var(--panel); padding: 45px; border-radius: 20px;
@@ -49,12 +57,19 @@
         }
         .btn-start:hover { background: #ffea00; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(253, 216, 53, 0.3); }
 
-        /* The Video Iframe */
+        /* Video Iframe */
         #video-room {
             width: 100%;
             height: 100%;
             border: none;
-            display: none;
+            display: none; /* Hidden until "Enter Meeting" is clicked */
+        }
+
+        /* "Link Copied" Message */
+        #toast {
+            position: fixed; top: 80px; right: 20px; background: var(--gold); color: #000;
+            padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 0.9rem;
+            display: none; z-index: 2000; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -62,15 +77,18 @@
 
     <nav>
         <div class="logo">EDDY<span>ROOM</span></div>
-        <div class="status-box">
-            <span class="status-text">● SECURE OPEN WORKSPACE</span>
+        <div class="nav-actions">
+            <button id="share-btn" class="share-btn" onclick="copyInvite()">🔗 SHARE MEETING LINK</button>
+            <div id="status" style="color: var(--gold); font-size: 0.7rem; font-weight: bold;">● STANDBY</div>
         </div>
     </nav>
+
+    <div id="toast">✅ Link Copied! Send it to your friends.</div>
 
     <div id="meet-frame">
         <div class="lobby" id="lobby">
             <h2>Workspace</h2>
-            <p>Direct Encrypted Video Access<br><b>No Login Required</b></p>
+            <p>Direct Encrypted Video Access.<br><b>No Login or Account Required.</b></p>
             <button class="btn-start" onclick="initMeeting()">Enter Meeting</button>
         </div>
         
@@ -80,24 +98,40 @@
     <audio id="ping-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
 
     <script>
+        // THIS IS YOUR UNIQUE ROOM ID
+        const MY_ROOM_ID = "EddyRoom_Workspace_721_Alpha";
+
         function initMeeting() {
             const lobby = document.getElementById('lobby');
             const iframe = document.getElementById('video-room');
+            const shareBtn = document.getElementById('share-btn');
+            const status = document.getElementById('status');
+            const sound = document.getElementById('ping-sound');
+
+            // 1. Set the video source to MiroTalk P2P
+            iframe.src = `https://p2p.mirotalk.com/join/${MY_ROOM_ID}`;
             
-            // Generate a unique, permanent room name for your workspace
-            const roomName = "EddyRoom_Global_Workspace_721";
-            
-            // Set the Source to an Open-Source MiroTalk Server
-            // This bypasses Jitsi's moderator login requirements
-            iframe.src = `https://p2p.mirotalk.com/join/${roomName}`;
-            
-            // UI Changes
+            // 2. Hide Lobby and Show Video
             lobby.style.display = 'none';
             iframe.style.display = 'block';
+            
+            // 3. Update Navbar
+            shareBtn.style.display = 'block';
+            status.innerHTML = "<span style='color:#4CAF50'>● LIVE SESSION</span>";
 
-            // Play the "Entry Ping"
-            const sound = document.getElementById('ping-sound');
-            sound.play().catch(e => console.log("Audio ready"));
+            // 4. Play notification sound
+            sound.play().catch(e => console.log("Audio ready for next interaction"));
+        }
+
+        function copyInvite() {
+            // Copies your website URL so friends can join your specific page
+            const currentUrl = window.location.href;
+            navigator.clipboard.writeText(currentUrl).then(() => {
+                const toast = document.getElementById('toast');
+                toast.style.display = 'block';
+                // Hide the message after 3 seconds
+                setTimeout(() => { toast.style.display = 'none'; }, 3000);
+            });
         }
     </script>
 </body>
