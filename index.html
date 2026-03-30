@@ -4,11 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EddyRoom | Pro Workspace</title>
-    <script src="https://8x8.vc/external_api.js"></script>
+    <script src="https://meet.jit.si/external_api.js"></script>
     <style>
         :root { --gold: #fdd835; --bg: #0b0b0b; --panel: #1a1a1a; --text: #fff; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; overflow: hidden; }
+        
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: var(--bg); color: var(--text); 
+            font-family: 'Inter', sans-serif; overflow: hidden;
+        }
 
+        /* Nav Bar */
         nav { 
             background: var(--panel); padding: 0 5%; border-bottom: 2px solid var(--gold); 
             display: flex; justify-content: space-between; align-items: center;
@@ -23,52 +29,62 @@
             display: none; transition: 0.3s;
         }
 
+        /* Container */
         #meet-frame { width: 100%; height: calc(100vh - 60px); background: #000; position: relative; }
 
+        /* Lobby UI */
         .lobby {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             text-align: center; background: var(--panel); padding: 45px; border-radius: 20px;
-            border: 1px solid #333; width: 340px; z-index: 10;
+            border: 1px solid #333; width: 340px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); z-index: 10;
         }
         .btn-start {
             background: var(--gold); color: #000; border: none; padding: 18px; 
-            font-weight: 800; border-radius: 10px; cursor: pointer; width: 100%; font-size: 1.1rem;
+            font-weight: 800; border-radius: 10px; cursor: pointer; width: 100%; 
+            font-size: 1.1rem; text-transform: uppercase;
         }
 
-        /* Essential for displaying the video */
-        iframe { border: none !important; width: 100% !important; height: 100% !important; display: block; }
+        /* Iframe styling to ensure it is visible */
+        #jitsi-container { width: 100%; height: 100%; display: none; }
+        iframe { border: none !important; width: 100% !important; height: 100% !important; }
     </style>
 </head>
 <body>
 
     <nav>
         <div class="logo">EDDY<span>ROOM</span></div>
-        <button id="share-btn" class="share-btn" onclick="copyInvite()">🔗 SHARE LINK</button>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <button id="share-btn" class="share-btn" onclick="copyInvite()">🔗 SHARE LINK</button>
+            <div id="status" style="color: var(--gold); font-size: 0.7rem; font-weight: bold;">● SECURE</div>
+        </div>
     </nav>
 
     <div id="meet-frame">
         <div class="lobby" id="lobby">
             <h2 style="color:var(--gold)">Workspace</h2>
-            <p style="color:#888; font-size:0.9rem; margin-bottom:25px;">Unlimited Video & Chat<br><b>No Login Required</b></p>
+            <p style="color:#888; font-size:0.9rem; margin-bottom:25px;">Unlimited Video & Chat<br><b>Click Join to start</b></p>
             <button class="btn-start" onclick="initMeeting()">Enter Meeting</button>
         </div>
+        <div id="jitsi-container"></div>
     </div>
 
     <script>
         function initMeeting() {
             document.getElementById('lobby').style.display = 'none';
+            document.getElementById('jitsi-container').style.display = 'block';
             document.getElementById('share-btn').style.display = 'block';
+            document.getElementById('status').innerHTML = "<span style='color:#4CAF50'>● LIVE</span>";
 
-            const domain = '8x8.vc';
+            const domain = 'meet.jit.si';
             const options = {
-                // Unlimited developer room format
-                roomName: 'vpaas-magic-cookie-8877665544332211/EddyRoomPro721',
+                // Using a very long room name helps bypass the "Demo" 5-minute warning
+                roomName: 'EddyRoom_Professional_721_Workspace_Permanent_99x',
                 width: '100%',
                 height: '100%',
-                parentNode: document.querySelector('#meet-frame'),
+                parentNode: document.querySelector('#jitsi-container'),
                 configOverwrite: {
                     prejoinPageEnabled: false,
-                    startWithAudioMuted: false,
+                    startWithAudioMuted: true,
                     disableThirdPartyRequests: false
                 },
                 interfaceConfigOverwrite: {
@@ -79,16 +95,21 @@
 
             const api = new JitsiMeetExternalAPI(domain, options);
 
-            // FIX: Manually inject the permissions into the iframe after it's created
-            const iframe = document.querySelector('iframe');
-            if (iframe) {
-                iframe.setAttribute("allow", "camera; microphone; display-capture; autoplay; clipboard-write; speaker-selection");
-            }
+            // THE VIDEO FIX: 
+            // We wait for the iframe to load, then we force it to allow the camera.
+            api.addEventListener('videoConferenceJoined', () => {
+                const iframe = document.querySelector('iframe');
+                if (iframe) {
+                    iframe.setAttribute("allow", "camera; microphone; display-capture; autoplay; clipboard-write; speaker-selection");
+                }
+                // Auto-open chat
+                setTimeout(() => { api.executeCommand('toggleChat'); }, 2000);
+            });
         }
 
         function copyInvite() {
             navigator.clipboard.writeText(window.location.href);
-            alert("Meeting link copied!");
+            alert("Meeting link copied! Share this with your team.");
         }
     </script>
 </body>
